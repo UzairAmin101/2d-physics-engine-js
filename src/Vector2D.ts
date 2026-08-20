@@ -23,4 +23,8 @@ export class Vector2D {
 
 		return this.scale(1 / this.magnitude());
 	}
+
+	public dot(other: Vector2D): number {
+		return this.x * other.x + this.y * other.y;
+	}
 }

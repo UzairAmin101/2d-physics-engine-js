@@ -1,8 +1,9 @@
 import { Particle } from "./Particle.js";
+import { Simulation, type ToolMode } from "./Simulation.js";
 import { Vector2D } from "./Vector2D.js";
 
 const PARTICLE_RADIUS = 20;
-const K = 30;  // Spring stiffness
+const K = 30; // Spring stiffness
 const C = 2.0; // Damping coefficient
 
 const canvas = document.getElementById("simCanvas") as HTMLCanvasElement;
@@ -16,25 +17,25 @@ let isDragging = false;
 let mousePos = new Vector2D(0, 0);
 let previousMousePos = new Vector2D(0, 0);
 
-canvas.addEventListener('mousedown', (e) => {
-	const rect = canvas.getBoundingClientRect();
-	mousePos = new Vector2D(e.clientX - rect.left, e.clientY - rect.top);
+// canvas.addEventListener("mousedown", (e) => {
+// 	const rect = canvas.getBoundingClientRect();
+// 	mousePos = new Vector2D(e.clientX - rect.left, e.clientY - rect.top);
 
-	const offset = mousePos.add(particle.position.scale(-1));
-	if (offset.magnitude() <= PARTICLE_RADIUS) {
-		isDragging = true;
-		previousMousePos = mousePos;
-	}
-});
+// 	const offset = mousePos.add(particle.position.scale(-1));
+// 	if (offset.magnitude() <= PARTICLE_RADIUS) {
+// 		isDragging = true;
+// 		previousMousePos = mousePos;
+// 	}
+// });
 
-canvas.addEventListener('mousemove', (e) => {
-	const rect = canvas.getBoundingClientRect();
-	mousePos = new Vector2D(e.clientX - rect.left, e.clientY - rect.top);
-})
+// canvas.addEventListener("mousemove", (e) => {
+// 	const rect = canvas.getBoundingClientRect();
+// 	mousePos = new Vector2D(e.clientX - rect.left, e.clientY - rect.top);
+// });
 
-canvas.addEventListener('mouseup', () => {
-	isDragging = false;
-})
+// canvas.addEventListener("mouseup", () => {
+// 	isDragging = false;
+// });
 
 function animate(timestamp: number) {
 	const dt = (timestamp - lastTime) / 1000;
@@ -55,7 +56,7 @@ function animate(timestamp: number) {
 		const springForce = x.scale(-K);
 
 		const dampingForce = particle.velocity.scale(-C);
-		
+
 		const gravity = new Vector2D(0, 980).scale(particle.mass);
 
 		particle.applyForce(gravity);
@@ -92,7 +93,13 @@ function animate(timestamp: number) {
 	ctx?.stroke();
 
 	ctx?.beginPath();
-	ctx?.arc(particle.position.x, particle.position.y, PARTICLE_RADIUS, 0, Math.PI * 2);
+	ctx?.arc(
+		particle.position.x,
+		particle.position.y,
+		PARTICLE_RADIUS,
+		0,
+		Math.PI * 2,
+	);
 	ctx!.fillStyle = "crimson";
 	ctx?.fill();
 
@@ -101,8 +108,36 @@ function animate(timestamp: number) {
 	ctx!.fillStyle = "yellow";
 	ctx?.fill();
 
-
 	requestAnimationFrame(animate);
 }
 
-requestAnimationFrame(animate);
+// requestAnimationFrame(animate);
+
+function setupUI(sim: Simulation): void {
+	const buttons = document.querySelectorAll<HTMLButtonElement>(".tool-btn");
+
+	const setActiveTool = (tool: ToolMode) => {
+		sim.setTool(tool);
+		buttons.forEach((btn) => {
+			btn.classList.toggle("active", btn.dataset.tool === tool);
+		});
+	};
+
+	// Button click listeners
+	buttons.forEach((btn) => {
+		btn.addEventListener("click", () => {
+			const tool = btn.dataset.tool as ToolMode;
+			setActiveTool(tool);
+		});
+	});
+
+	// window.addEventListener("keydown", (e) => {
+	// 	if (e.key === "1") setActiveTool(ToolMode.SPAWN);
+	// 	if (e.key === "2") setActiveTool(ToolMode.CONNECT);
+	// 	if (e.key === "3") setActiveTool(ToolMode.DELETE);
+	// });
+}
+
+const simulation = new Simulation(canvas);
+setupUI(simulation);
+simulation.run();
